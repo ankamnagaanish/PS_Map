@@ -886,72 +886,101 @@ td video {
             height: 26px;
         }
         #map-legend {
-            display: none !important;
-            position: absolute;
-            right: 10px;
-            bottom: 40px;
-            z-index: 10;
-            max-width: 260px;
-            max-height: calc(50vh - 60px);
-            overflow-y: auto;
-            background: rgba(255,255,255,0.96);
-            border-radius: 6px;
-            box-shadow: 0 3px 14px rgba(0,0,0,0.4);
-            font-family: Arial, sans-serif;
+            display: none; /* hidden until moved into right panel */
+            font-family: "Avenir Next",Arial,sans-serif;
             font-size: 12px;
             color: #222;
+            width: 100%;
         }
-        #map-legend summary {
-            padding: 7px 10px;
-            font-weight: bold;
-            color: #0E4A90;
-            cursor: pointer;
-            user-select: none;
-            list-style: none;
-        }
-        #map-legend summary::-webkit-details-marker { display: none; }
-        #map-legend summary:before {
-            content: "▸";
-            display: inline-block;
-            margin-right: 5px;
-            transition: transform .15s;
-        }
-        #map-legend[open] summary:before {
-            transform: rotate(90deg);
-        }
+        #map-legend summary { display: none; }
         #map-legend .legend-body {
-            padding: 2px 10px 10px 10px;
+            padding: 10px 14px 14px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
-        #map-legend .legend-title {
-            font-weight: bold;
-            font-size: 11px;
+        .legend-title {
+            font-weight: 700;
+            font-size: 10px;
             text-transform: uppercase;
-            letter-spacing: .3px;
-            color: #555;
-            margin: 9px 0 4px;
+            letter-spacing: .6px;
+            color: #4a7ab5;
+            margin: 14px 0 5px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #dde3ec;
         }
-        #map-legend .legend-title:first-child { margin-top: 2px; }
-        #map-legend .legend-row {
+        .legend-title:first-child { margin-top: 4px; }
+        .legend-row {
             display: flex;
             align-items: center;
-            gap: 7px;
-            padding: 2px 0;
-            line-height: 1.3;
+            gap: 8px;
+            padding: 3px 0;
+            line-height: 1.4;
+            font-size: 12px;
+            color: #333;
         }
-        #map-legend .legend-swatch {
+        .legend-swatch {
             flex: 0 0 auto;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 26px;
+            width: 28px;
         }
-        #map-legend .legend-dist {
+        .legend-dist {
             margin-left: auto;
             padding-left: 8px;
             color: #64748B;
-            font-size: 11px;
+            font-size: 10px;
             white-space: nowrap;
         }
+        .legend-row select, .legend-row input[type="text"] {
+            width: 100%;
+            font-size: 11px;
+            padding: 4px 8px;
+            border: 1px solid #c8d0de;
+            border-radius: 4px;
+            background: #f5f7fb;
+            color: #333;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .legend-row select:focus, .legend-row input[type="text"]:focus {
+            border-color: #4a7ab5;
+        }
+        .dc-result-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 11px;
+            transition: background .1s;
+        }
+        .dc-result-item:hover { background: #e8f0fb; }
+        .dc-result-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .dc-result-name { flex: 1; font-weight: 600; color: #222; }
+        .dc-result-status { font-size: 10px; color: #777; }
+        #dc-search-results {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #dde3ec;
+            border-radius: 5px;
+            background: #fff;
+            margin-top: 4px;
+        }
+        .boundary-control-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #555;
+        }
+        .boundary-toggle { cursor: pointer; }
 
         /* ── Datacenter popup ───────────────────────────────────────────── */
         #dc-popup {
@@ -1143,7 +1172,7 @@ td video {
                         <span class="legend-dist" id="opacity-zip-val">30%</span>
                     </div>
 
-                    <div class="legend-title">Data Centers <span style="font-weight:normal;text-transform:none;letter-spacing:0;color:#999">(37 sites)</span></div>
+                    <div class="legend-title" style="color:#2563EB">&#9632; Data Centers <span style="font-weight:normal;text-transform:none;letter-spacing:0;color:#999;font-size:10px;">(37 sites)</span></div>
                     <div class="legend-row"><span class="legend-swatch"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#22C55E" stroke="#fff" stroke-width="1.5"/><rect x="5" y="5" width="10" height="10" rx="1" fill="none" stroke="#fff" stroke-width="0.9"/><line x1="5" y1="7.8" x2="15" y2="7.8" stroke="#fff" stroke-width="0.7"/><line x1="5" y1="10.5" x2="15" y2="10.5" stroke="#fff" stroke-width="0.7"/><rect x="6.2" y="5.8" width="1.4" height="1.1" fill="#fff"/><rect x="8.8" y="5.8" width="1.4" height="1.1" fill="#fff"/><rect x="11.4" y="5.8" width="1.4" height="1.1" fill="#fff"/><rect x="6.2" y="8.6" width="1.4" height="1.1" fill="#fff"/><rect x="8.8" y="8.6" width="1.4" height="1.1" fill="#fff"/><rect x="11.4" y="8.6" width="1.4" height="1.1" fill="#fff"/><rect x="6.2" y="11.3" width="1.4" height="1.1" fill="#fff"/><rect x="8.8" y="11.3" width="1.4" height="1.1" fill="#fff"/><rect x="11.4" y="11.3" width="1.4" height="1.1" fill="#fff"/></svg></span>Operational</div>
                     <div class="legend-row"><span class="legend-swatch"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#F97316" stroke="#fff" stroke-width="1.5"/><rect x="5" y="5" width="10" height="10" rx="1" fill="none" stroke="#fff" stroke-width="0.9"/><line x1="5" y1="7.8" x2="15" y2="7.8" stroke="#fff" stroke-width="0.7"/><line x1="5" y1="10.5" x2="15" y2="10.5" stroke="#fff" stroke-width="0.7"/><rect x="6.2" y="5.8" width="1.4" height="1.1" fill="#fff"/><rect x="8.8" y="5.8" width="1.4" height="1.1" fill="#fff"/><rect x="11.4" y="5.8" width="1.4" height="1.1" fill="#fff"/><rect x="6.2" y="8.6" width="1.4" height="1.1" fill="#fff"/><rect x="8.8" y="8.6" width="1.4" height="1.1" fill="#fff"/><rect x="11.4" y="8.6" width="1.4" height="1.1" fill="#fff"/><rect x="6.2" y="11.3" width="1.4" height="1.1" fill="#fff"/><rect x="8.8" y="11.3" width="1.4" height="1.1" fill="#fff"/><rect x="11.4" y="11.3" width="1.4" height="1.1" fill="#fff"/></svg></span>Under Construction</div>
                     <div class="legend-row"><span class="legend-swatch"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#3B82F6" stroke="#fff" stroke-width="1.5"/><rect x="5" y="5" width="10" height="10" rx="1" fill="none" stroke="#fff" stroke-width="0.9"/><line x1="5" y1="7.8" x2="15" y2="7.8" stroke="#fff" stroke-width="0.7"/><line x1="5" y1="10.5" x2="15" y2="10.5" stroke="#fff" stroke-width="0.7"/><rect x="6.2" y="5.8" width="1.4" height="1.1" fill="#fff"/><rect x="8.8" y="5.8" width="1.4" height="1.1" fill="#fff"/><rect x="11.4" y="5.8" width="1.4" height="1.1" fill="#fff"/><rect x="6.2" y="8.6" width="1.4" height="1.1" fill="#fff"/><rect x="8.8" y="8.6" width="1.4" height="1.1" fill="#fff"/><rect x="11.4" y="8.6" width="1.4" height="1.1" fill="#fff"/><rect x="6.2" y="11.3" width="1.4" height="1.1" fill="#fff"/><rect x="8.8" y="11.3" width="1.4" height="1.1" fill="#fff"/><rect x="11.4" y="11.3" width="1.4" height="1.1" fill="#fff"/></svg></span>Planned</div>
@@ -2966,7 +2995,7 @@ var lyr_USTribalLand_2 = new ol.layer.Vector({
                 source:jsonSource_USTribalLand_2, 
                 style: style_USTribalLand_2,
                 popuplayertitle: 'US Tribal Land',
-                interactive: true,
+                interactive: false,
                 title: 'US Tribal Land / Jurisdiction'
             });
 var format_RouteSanjosetoReno_Sparks_5 = new ol.format.GeoJSON();
@@ -3056,7 +3085,7 @@ var lyr_Countys_10 = new ol.layer.VectorImage({
                 source:jsonSource_Countys_10,
                 style: style_Countys_10,
                 popuplayertitle: 'County Boundaries',
-                interactive: true,
+                interactive: false,
                 opacity: 0.3,
                 title: 'County Boundaries (11)'
             });
@@ -3072,7 +3101,7 @@ var lyr_County_Subdivisions_11 = new ol.layer.VectorImage({
                 source:jsonSource_County_Subdivisions_11,
                 style: style_County_Subdivisions_11,
                 popuplayertitle: 'County Subdivisions',
-                interactive: true,
+                interactive: false,
                 opacity: 0.3,
                 title: 'County Subdivisions (31)'
             });
@@ -3088,7 +3117,7 @@ var lyr_ZIP_12 = new ol.layer.VectorImage({
                 source:jsonSource_ZIP_12,
                 style: style_ZIP_12,
                 popuplayertitle: 'ZIP Code Boundaries',
-                interactive: true,
+                interactive: false,
                 opacity: 0.3,
                 visible: false,
                 title: 'ZIP Code Boundaries (54)'
@@ -4407,7 +4436,8 @@ if (hasTouchScreen || isSmallScreen) {
                 var geom = feat.getGeometry();
                 map.getView().animate({ center: geom.getCoordinates(), zoom: 15, duration: 500 });
                 highlightDc(feat);
-                showDcPopup(feat);
+                var _coord = feat.getGeometry().getCoordinates();
+                showDcPopup(feat, _coord);
                 if (toggleEl && !lyr_Datacenters.getVisible()) {
                     toggleEl.checked = true;
                     lyr_Datacenters.setVisible(true);
@@ -4759,8 +4789,12 @@ function populateRightLegend(){
   var rlc = $('right-legend-content'); if(!rlc) return;
   if(rlc._populated) return;
   rlc._populated = true;
-  var src = document.querySelector('#map-legend .legend-body');
-  if(src){ rlc.innerHTML = '<div style="padding:8px 2px;">'+src.innerHTML+'</div>'; }
+  var legendEl = document.getElementById('map-legend');
+  if(legendEl){
+    legendEl.style.display = 'block';
+    legendEl.open = true;
+    rlc.appendChild(legendEl); // physically move, preserves IDs and event listeners
+  }
 }
 document.querySelectorAll('.pt').forEach(function(tab){
   tab.addEventListener('click', function(){
