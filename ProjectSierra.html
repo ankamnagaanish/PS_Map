@@ -886,6 +886,7 @@ td video {
             height: 26px;
         }
         #map-legend {
+            display: none !important;
             position: absolute;
             right: 10px;
             bottom: 40px;
@@ -954,21 +955,37 @@ td video {
 
         /* ── Datacenter popup ───────────────────────────────────────────── */
         #dc-popup {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
             background: #fff;
             border: 1px solid #DCE3EC;
             border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.22);
             padding: 0;
-            min-width: 300px;
-            max-width: 420px;
+            min-width: 280px;
+            max-width: 380px;
             z-index: 9999;
             display: none;
             font-family: "Segoe UI", Arial, sans-serif;
             font-size: 13px;
+            pointer-events: auto;
+        }
+        #dc-popup::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #DCE3EC;
+        }
+        #dc-popup::before {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #fff;
+            z-index: 1;
         }
         #dc-popup.visible { display: block; }
         #dc-popup-header {
@@ -4219,10 +4236,17 @@ if (hasTouchScreen || isSmallScreen) {
             '<button id="dc-popup-close" title="Close">×</button>' +
         '</div>' +
         '<div id="dc-popup-body"><table id="dc-popup-table"></table></div>';
-    document.body.appendChild(dcPopup);
+    var dcOverlay = new ol.Overlay({
+        element: dcPopup,
+        positioning: 'bottom-center',
+        stopEvent: true,
+        offset: [0, -20]
+    });
+    map.addOverlay(dcOverlay);
 
     document.getElementById('dc-popup-close').addEventListener('click', function() {
         dcPopup.classList.remove('visible');
+        dcOverlay.setPosition(undefined);
         if (dcHighlighted) { dcHighlighted.setStyle(null); dcHighlighted = null; }
     });
 
@@ -4236,7 +4260,7 @@ if (hasTouchScreen || isSmallScreen) {
         'TBA-To Be Announced': '#EAB308'
     };
 
-    function showDcPopup(feat) {
+    function showDcPopup(feat, coord) {
         var status = feat.get('Status') || '';
         var color = DC_STATUS_COLORS_UI[status] || '#64748B';
         document.getElementById('dc-popup-title').textContent = feat.get('Name') || 'Data Center';
@@ -4258,6 +4282,8 @@ if (hasTouchScreen || isSmallScreen) {
         }).join('');
         document.getElementById('dc-popup-table').innerHTML = rows;
         dcPopup.classList.add('visible');
+        // Position the OL overlay at the feature's coordinate
+        if (coord) dcOverlay.setPosition(coord);
     }
 
     function highlightDc(feat) {
@@ -4267,10 +4293,24 @@ if (hasTouchScreen || isSmallScreen) {
         var status = feat.get('Status') || '';
         var color = DC_STATUS_COLORS_UI[status] || '#64748B';
         feat.setStyle(new ol.style.Style({
-            image: new ol.style.RegularShape({
-                points: 4, radius: 13, angle: Math.PI / 4,
-                fill: new ol.style.Fill({ color: color }),
-                stroke: new ol.style.Stroke({ color: '#FF0000', width: 3 })
+            image: new ol.style.Icon({
+                src: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42">' +
+                    '<circle cx="21" cy="21" r="19" fill="' + color + '" stroke="#FF0000" stroke-width="3"/>' +
+                    '<rect x="11" y="11" width="20" height="20" rx="2" fill="none" stroke="#fff" stroke-width="1.5"/>' +
+                    '<line x1="11" y1="16.5" x2="31" y2="16.5" stroke="#fff" stroke-width="1"/>' +
+                    '<line x1="11" y1="22" x2="31" y2="22" stroke="#fff" stroke-width="1"/>' +
+                    '<rect x="13" y="12.5" width="3" height="2.5" rx="0.3" fill="#fff"/>' +
+                    '<rect x="18" y="12.5" width="3" height="2.5" rx="0.3" fill="#fff"/>' +
+                    '<rect x="23" y="12.5" width="3" height="2.5" rx="0.3" fill="#fff"/>' +
+                    '<rect x="13" y="18" width="3" height="2.5" rx="0.3" fill="#fff"/>' +
+                    '<rect x="18" y="18" width="3" height="2.5" rx="0.3" fill="#fff"/>' +
+                    '<rect x="23" y="18" width="3" height="2.5" rx="0.3" fill="#fff"/>' +
+                    '<rect x="13" y="23.5" width="3" height="2.5" rx="0.3" fill="#fff"/>' +
+                    '<rect x="18" y="23.5" width="3" height="2.5" rx="0.3" fill="#fff"/>' +
+                    '<rect x="23" y="23.5" width="3" height="2.5" rx="0.3" fill="#fff"/>' +
+                    '</svg>'),
+                scale: 1, anchor: [0.5, 0.5]
             })
         }));
         dcHighlighted = feat;
@@ -4286,7 +4326,12 @@ if (hasTouchScreen || isSmallScreen) {
         });
         if (found) {
             highlightDc(found);
-            showDcPopup(found);
+            var coord = found.getGeometry().getCoordinates();
+            showDcPopup(found, coord);
+        } else {
+            dcPopup.classList.remove('visible');
+            dcOverlay.setPosition(undefined);
+            if (dcHighlighted) { dcHighlighted.setStyle(null); dcHighlighted = null; }
         }
     });
 
@@ -4512,12 +4557,7 @@ var ST = {
 };
 
 // ── User identity (team / multi-user cloud save) ──────────────────────────────
-var GIS_USER_ID = lsGet('gis_user_id');
-if(!GIS_USER_ID){
-  GIS_USER_ID = (prompt('Welcome to ProjectSierra!\n\nEnter your name so your project is saved to your personal slot:') || 'user')
-    .trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'').slice(0,32) || 'user';
-  lsSet('gis_user_id', GIS_USER_ID);
-}
+var GIS_USER_ID = lsGet('gis_user_id') || 'user';
 
 // ── ID gen ────────────────────────────────────────────────────────────────────
 var _id = 0;
@@ -4613,7 +4653,7 @@ var wrap = document.createElement('div');
 wrap.id = 'gis-wrap';
 wrap.innerHTML = `<div id="gis-appbar"> <div class="ab-brand"> <button class="ab-btn" id="ab-left-toggle" title="Toggle Layers Panel" style="padding:4px 6px;"><svg viewBox="0 0 16 16"><path d="M8 1L1 5l7 4 7-4zM1 9l7 4 7-4M1 13l7 4 7-4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button> <span class="ab-brand-icon">◆</span> <span>Project Sierra</span> </div> <div class="ab-tools"> <div style="display:inline-flex;align-items:center;gap:1px;flex-shrink:0;"> <button class="ab-btn" id="ab-pan" title="Pan [P]"><svg viewBox="0 0 16 16"><path d="M8 2v5M8 9v5M2 8h5M9 8h5M6 3l2-2 2 2M6 13l2 2 2-2M3 6l-2 2 2 2M13 6l2 2-2 2" fill="none" stroke="currentColor" stroke-width="1.4"/></svg> <span>Pan</span></button> <button class="ab-btn" id="ab-select" title="Select [S]"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3,2"/><circle cx="2" cy="2" r="1.5" fill="currentColor"/><circle cx="14" cy="2" r="1.5" fill="currentColor"/><circle cx="14" cy="14" r="1.5" fill="currentColor"/><circle cx="2" cy="14" r="1.5" fill="currentColor"/></svg> <span>Select</span></button> </div> <div class="ab-sep"></div> <div style="display:inline-flex;align-items:center;gap:1px;flex-shrink:0;"> <button class="ab-btn" id="ab-polygon" title="Draw Polygon [G]"><svg viewBox="0 0 16 16"><polygon points="8,1 15,6 12,14 4,14 1,6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> <span>Polygon</span></button> <button class="ab-btn" id="ab-rect" title="Draw Rectangle [R]"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> <span>Rect</span></button> <button class="ab-btn" id="ab-circle" title="Draw Circle [C]"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> <span>Circle</span></button> <button class="ab-btn" id="ab-line" title="Draw Line [L]"><svg viewBox="0 0 16 16"><line x1="2" y1="14" x2="14" y2="2" stroke="currentColor" stroke-width="1.5"/><circle cx="2" cy="14" r="1.5" fill="currentColor"/><circle cx="14" cy="2" r="1.5" fill="currentColor"/></svg> <span>Line</span></button> <button class="ab-btn" id="ab-point" title="Draw Point [O]"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4" fill="currentColor"/><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> <span>Point</span></button> <button class="ab-btn" id="ab-text" title="Place Text [T]"><svg viewBox="0 0 16 16"><text x="2" y="13" font-size="13" font-weight="bold" fill="currentColor">T</text></svg> <span>Text</span></button> </div> <div class="ab-sep"></div> <div style="display:inline-flex;align-items:center;gap:1px;flex-shrink:0;"> <button class="ab-btn" id="ab-undo" title="Undo [Ctrl+Z]"><svg viewBox="0 0 16 16"><path d="M3 7L7 3M3 7l4 4M3 7h8a3 3 0 010 6h-3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> <span>Undo</span></button> <button class="ab-btn" id="ab-redo" title="Redo [Ctrl+Y]"><svg viewBox="0 0 16 16"><path d="M13 7L9 3M13 7l-4 4M13 7H5a3 3 0 000 6h3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> <span>Redo</span></button> </div> <div class="ab-sep"></div> <div style="display:inline-flex;align-items:center;gap:1px;flex-shrink:0;"> <button class="ab-btn" id="ab-save" title="Save Project [Ctrl+S]"><svg viewBox="0 0 16 16"><path d="M2 14V2h9l3 3v9zm5-1v-4h4v4zm1-10v3h3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> <span>Save</span></button> <button class="ab-btn" id="ab-import" title="Import"><svg viewBox="0 0 16 16"><path d="M9 2H4a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6zM9 2l4 4H9zM8 13V8M6 10l2-2 2 2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> <span>Import</span></button> <button class="ab-btn" id="ab-export" title="Export"><svg viewBox="0 0 16 16"><path d="M9 2H4a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6zM9 2l4 4H9zM8 8v5M6 11l2 2 2-2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> <span>Export</span></button> </div> </div> <div class="ab-right"> <div id="gis-search-wrap"> <input type="text" id="gis-search" placeholder="Search features, layers…" autocomplete="off"> <span class="search-icon"><svg viewBox="0 0 16 16"><circle cx="6" cy="6" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="9.2" y1="9.2" x2="14" y2="14" stroke="currentColor" stroke-width="1.5"/></svg></span> <div id="gis-search-results"></div> </div> <div id="gis-save-status" class="saved"><div class="gis-dot"></div><span>Saved</span></div> <button class="ab-btn" id="ab-theme" title="Toggle Theme"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/></svg></button> <button class="ab-btn" id="ab-fullscreen" title="Fullscreen"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg></button> <button class="ab-btn" id="ab-help" title="Keyboard Shortcuts [?]"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="5.5" y="12" font-size="10" fill="currentColor">?</text></svg></button> </div>
 </div> <div class="gis-panel left" id="gis-left"> <div class="rh" id="rh-left"></div> <div class="panel-tab" id="left-tab" title="Toggle Panel"> <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M10 4l-4 4 4 4"/></svg> </div> <div class="ph"> <span class="ph-icon">🗂️</span> <span class="ph-title">Project Layers</span> <button class="ph-btn" id="btn-add-draw-layer" title="Add Draw Layer"><svg viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button> </div> <div class="pt-bar"> <div class="pt on" data-panel="left" data-tab="layers">Layers</div> <div class="pt" data-panel="left" data-tab="draw">Draw</div> <div class="pt" data-panel="left" data-tab="legend">Legend</div> <div class="pt" data-panel="left" data-tab="dash">Dashboard</div> </div> <div class="ptc on" id="ltab-layers"> <div class="lyr-search"> <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="flex-shrink:0;opacity:.5"><circle cx="6" cy="6" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="9.2" y1="9.2" x2="13.5" y2="13.5" stroke="currentColor" stroke-width="1.8"/></svg> <input type="text" id="lyr-search-input" placeholder="Search layers…"> </div> <div id="lyr-tree" style="flex:1;overflow-y:auto;"></div> </div> <div class="ptc" id="ltab-draw"> <div class="active-lyr-bar"> <span style="font-size:10px;color:var(--text2);font-weight:600;flex-shrink:0;">Active Layer:</span> <select id="active-dl-select"></select> </div> <div style="flex:1;overflow-y:auto;" id="draw-layers-list"></div> <div class="draw-section"> <div class="draw-section-title">Drawing Tools</div> <div class="draw-grid"> <button class="draw-btn" id="db-polygon" title="Polygon [G]"><svg viewBox="0 0 16 16"><polygon points="8,1 15,6 12,14 4,14 1,6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> <span>Polygon</span></button> <button class="draw-btn" id="db-rect" title="Rectangle [R]"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> <span>Rect</span></button> <button class="draw-btn" id="db-circle" title="Circle [C]"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> <span>Circle</span></button> <button class="draw-btn" id="db-line" title="Line [L]"><svg viewBox="0 0 16 16"><line x1="2" y1="14" x2="14" y2="2" stroke="currentColor" stroke-width="1.5"/><circle cx="2" cy="14" r="1.5" fill="currentColor"/><circle cx="14" cy="2" r="1.5" fill="currentColor"/></svg> <span>Line</span></button> <button class="draw-btn" id="db-point" title="Point [O]"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4" fill="currentColor"/><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> <span>Point</span></button> <button class="draw-btn" id="db-text" title="Text [T]"><svg viewBox="0 0 16 16"><text x="2" y="13" font-size="13" font-weight="bold" fill="currentColor">T</text></svg> <span>Text</span></button> </div> </div> </div> <div class="ptc" id="ltab-legend"> <div id="legend-content" class="legend-wrap"></div> </div> <div class="ptc" id="ltab-dash"> <div id="dashboard-content" style="flex:1;overflow-y:auto;"></div> </div>
-</div> <div class="gis-panel right collapsed" id="gis-right"> <div class="rh" id="rh-right"></div> <div class="panel-tab" id="right-tab" title="Toggle Panel"> <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M6 4l4 4-4 4"/></svg> </div> <div class="ph"> <span class="ph-icon">📋</span> <span class="ph-title">Properties</span> </div> <div class="pt-bar"> <div class="pt on" data-panel="right" data-tab="attr">Attributes</div> <div class="pt" data-panel="right" data-tab="style">Style</div> <div class="pt" data-panel="right" data-tab="grid">Data Grid</div> </div> <div class="ptc on" id="rtab-attr"> <div id="attr-panel-content"> <div class="attr-empty"> <svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3,2"/><circle cx="2" cy="2" r="1.5" fill="currentColor"/><circle cx="14" cy="2" r="1.5" fill="currentColor"/><circle cx="14" cy="14" r="1.5" fill="currentColor"/><circle cx="2" cy="14" r="1.5" fill="currentColor"/></svg> <div>Click a feature on the map<br>to view its attributes</div> </div> </div> </div> <div class="ptc" id="rtab-style"> <div id="style-panel-content"> <div class="attr-empty"><svg viewBox="0 0 16 16"><path d="M11 2l3 3-9 9H2v-3z" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="9" y1="4" x2="12" y2="7" stroke="currentColor" stroke-width="1.5"/></svg><div>Select a draw feature<br>to edit its style</div></div> </div> </div> <div class="ptc" id="rtab-grid"> <div id="grid-panel-content"> <div class="attr-empty"><svg viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="1" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="9" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="9" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div>Select a feature with a data grid<br>or click "Add Grid" below</div></div> </div> <div style="padding:8px;border-top:1px solid var(--border);flex-shrink:0;"> <button class="ab-btn" id="btn-add-grid" style="width:100%;justify-content:center;background:var(--bg2);color:var(--text1);border-color:var(--border);"> <svg viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="1" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="9" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="9" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> Add Grid to Selected Feature </button> </div> </div>
+</div> <div class="gis-panel right collapsed" id="gis-right"> <div class="rh" id="rh-right"></div> <div class="panel-tab" id="right-tab" title="Toggle Panel"> <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M6 4l4 4-4 4"/></svg> </div> <div class="ph"> <span class="ph-icon">📋</span> <span class="ph-title">Properties</span> </div> <div class="pt-bar"> <div class="pt on" data-panel="right" data-tab="attr">Attributes</div> <div class="pt" data-panel="right" data-tab="style">Style</div> <div class="pt" data-panel="right" data-tab="grid">Data Grid</div><div class="pt" data-panel="right" data-tab="legend">&#9660; Legend</div> </div> <div class="ptc on" id="rtab-attr"> <div id="attr-panel-content"> <div style="display:flex;justify-content:flex-end;padding:4px 8px 0;flex-shrink:0;"><button onclick="(function(){document.querySelectorAll('[data-panel=\'right\'].pt').forEach(function(t){t.classList.remove('on')});document.querySelectorAll('#gis-right .ptc').forEach(function(c){c.classList.remove('on')});var lt=document.querySelector('[data-panel=\'right\'][data-tab=\'legend\']');var lc=document.getElementById('rtab-legend');if(lt)lt.classList.add('on');if(lc)lc.classList.add('on');populateRightLegend();})()" style="font-size:10px;padding:2px 8px;background:#1e3a5f;color:#fff;border:none;border-radius:3px;cursor:pointer;opacity:0.8;">&#9660; Legend</button></div><div class="attr-empty"> <svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3,2"/><circle cx="2" cy="2" r="1.5" fill="currentColor"/><circle cx="14" cy="2" r="1.5" fill="currentColor"/><circle cx="14" cy="14" r="1.5" fill="currentColor"/><circle cx="2" cy="14" r="1.5" fill="currentColor"/></svg> <div>Click a feature on the map<br>to view its attributes</div> </div> </div> </div> <div class="ptc" id="rtab-style"> <div id="style-panel-content"> <div class="attr-empty"><svg viewBox="0 0 16 16"><path d="M11 2l3 3-9 9H2v-3z" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="9" y1="4" x2="12" y2="7" stroke="currentColor" stroke-width="1.5"/></svg><div>Select a draw feature<br>to edit its style</div></div> </div> </div> <div class="ptc" id="rtab-legend"><div id="right-legend-content" style="flex:1;overflow-y:auto;padding:0;"></div></div><div class="ptc" id="rtab-grid"> <div id="grid-panel-content"> <div class="attr-empty"><svg viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="1" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="9" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="9" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div>Select a feature with a data grid<br>or click "Add Grid" below</div></div> </div> <div style="padding:8px;border-top:1px solid var(--border);flex-shrink:0;"> <button class="ab-btn" id="btn-add-grid" style="width:100%;justify-content:center;background:var(--bg2);color:var(--text1);border-color:var(--border);"> <svg viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="1" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="9" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="9" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> Add Grid to Selected Feature </button> </div> </div>
 </div> <div id="gis-widgets"> <button class="widget-btn" id="w-zoom-in" title="Zoom In"> <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 3v10M3 8h10"/></svg> </button> <button class="widget-btn" id="w-zoom-out" title="Zoom Out"> <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3 8h10"/></svg> </button> <div class="widget-sep"></div> <button class="widget-btn" id="w-home" title="Home View"> <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 8L8 2l6 6M3 7v6h4v-3h2v3h4V7"/></svg> </button> <button class="widget-btn" id="w-fit" title="Fit All Features"> <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="4" height="4"/><rect x="9" y="9" width="4" height="4"/><line x1="3" y1="13" x2="13" y2="3"/></svg> </button>
 </div> <div id="gis-statusbar"> <div id="sb-coords">Move cursor over map…</div> <div id="sb-measure"></div> <div id="sb-count">0 features</div>
 </div> <div id="gis-grid-editor"> <div class="grid-ed-hdr"> <h3>📊 Grid Editor</h3> <button class="ph-btn" id="grid-ed-close" title="Close"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button> </div> <div class="grid-ed-toolbar"> <button class="btn" id="grid-add-row">+ Add Row</button> <button class="btn" id="grid-add-col">+ Add Column</button> <button class="btn primary" id="grid-save">Save Grid</button> <button class="btn" id="grid-cancel">Cancel</button> </div> <div class="grid-ed-body"> <table id="gis-grid-table"><thead><tr></tr></thead><tbody></tbody></table> </div>
@@ -4715,6 +4755,13 @@ initResize('rh-left','gis-left','left');
 initResize('rh-right','gis-right','right');
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
+function populateRightLegend(){
+  var rlc = $('right-legend-content'); if(!rlc) return;
+  if(rlc._populated) return;
+  rlc._populated = true;
+  var src = document.querySelector('#map-legend .legend-body');
+  if(src){ rlc.innerHTML = '<div style="padding:8px 2px;">'+src.innerHTML+'</div>'; }
+}
 document.querySelectorAll('.pt').forEach(function(tab){
   tab.addEventListener('click', function(){
     var panel = tab.dataset.panel, tabId = tab.dataset.tab;
@@ -4725,9 +4772,35 @@ document.querySelectorAll('.pt').forEach(function(tab){
     var el = $(prefix+'tab-'+tabId);
     if(el) el.classList.add('on');
     if(tabId==='legend') renderLegend();
+    if(tabId==='legend'&&panel==='right') populateRightLegend();
     if(tabId==='dash') renderDashboard();
   });
 });
+// Auto-populate legend on right panel toggle
+var rightToggle = $('right-tab');
+if(rightToggle){
+  rightToggle.addEventListener('click', function(){
+    setTimeout(function(){
+      var rp = $('gis-right');
+      if(rp && !rp.classList.contains('collapsed')){
+        populateRightLegend();
+      }
+    }, 250);
+  });
+}
+// Initialize: switch right panel to Legend tab by default
+(function(){
+  var legendTab = document.querySelector('[data-panel="right"][data-tab="legend"]');
+  var attrTab = document.querySelector('[data-panel="right"][data-tab="attr"]');
+  if(legendTab && attrTab){
+    attrTab.classList.remove('on');
+    legendTab.classList.add('on');
+    var rtabAttr = $('rtab-attr');
+    var rtabLegend = $('rtab-legend');
+    if(rtabAttr) rtabAttr.classList.remove('on');
+    if(rtabLegend){ rtabLegend.classList.add('on'); populateRightLegend(); }
+  }
+})();
 
 // ── Context menu ──────────────────────────────────────────────────────────────
 var ctx = $('gis-ctx');
@@ -5097,6 +5170,16 @@ function openAttrPanel(feat){
     html += '<div class="attr-actions"><button class="btn btn-save" id="attr-save">Save</button><button class="btn btn-cancel" id="attr-cancel">Cancel</button><button class="btn btn-reset" id="attr-reset">Reset</button></div>';
 
     $('attr-panel-content').innerHTML = html;
+
+    // Switch right panel to Attributes tab
+    (function switchToAttr(){
+      document.querySelectorAll('[data-panel="right"].pt').forEach(function(t){ t.classList.remove('on'); });
+      document.querySelectorAll('#gis-right .ptc').forEach(function(c){ c.classList.remove('on'); });
+      var at = document.querySelector('[data-panel="right"][data-tab="attr"]');
+      if(at) at.classList.add('on');
+      var ra = $('rtab-attr'); if(ra) ra.classList.add('on');
+      var rp = $('gis-right'); if(rp) rp.classList.remove('collapsed');
+    })();
 
     $('attr-panel-content').querySelectorAll('input[data-key],textarea[data-key],select[data-key]').forEach(function(inp){
       inp.addEventListener('input', function(){ ST.attrDirty=true; $('attr-dirty-warn').style.display=''; });
