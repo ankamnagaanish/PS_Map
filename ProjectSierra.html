@@ -951,6 +951,114 @@ td video {
             font-size: 11px;
             white-space: nowrap;
         }
+
+        /* ── Datacenter popup ───────────────────────────────────────────── */
+        #dc-popup {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            border: 1px solid #DCE3EC;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+            padding: 0;
+            min-width: 300px;
+            max-width: 420px;
+            z-index: 9999;
+            display: none;
+            font-family: "Segoe UI", Arial, sans-serif;
+            font-size: 13px;
+        }
+        #dc-popup.visible { display: block; }
+        #dc-popup-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px 8px;
+            border-bottom: 1px solid #DCE3EC;
+            background: #F5F7FA;
+            border-radius: 8px 8px 0 0;
+        }
+        #dc-popup-status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+        }
+        #dc-popup-title {
+            font-weight: 700;
+            font-size: 13px;
+            color: #0F1B2D;
+            flex: 1;
+            word-break: break-word;
+        }
+        #dc-popup-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #64748B;
+            line-height: 1;
+            padding: 0 2px;
+            flex-shrink: 0;
+        }
+        #dc-popup-body {
+            padding: 10px 12px;
+        }
+        #dc-popup-body table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        #dc-popup-body table tr td:first-child {
+            color: #64748B;
+            font-weight: 600;
+            padding: 3px 8px 3px 0;
+            white-space: nowrap;
+            vertical-align: top;
+            width: 110px;
+        }
+        #dc-popup-body table tr td:last-child {
+            color: #0F1B2D;
+            padding: 3px 0;
+        }
+        /* ── Datacenter search results ───────────────────────────────────── */
+        .dc-result-item {
+            padding: 5px 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: background 0.1s;
+        }
+        .dc-result-item:hover { background: #F5F7FA; }
+        .dc-result-item:last-child { border-bottom: none; }
+        .dc-result-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            transform: rotate(45deg);
+            flex-shrink: 0;
+        }
+        .dc-result-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 11px;
+            color: #0F1B2D;
+        }
+        .dc-result-status {
+            font-size: 10px;
+            color: #64748B;
+            white-space: nowrap;
+        }
         </style>
 
         <style>
@@ -1017,6 +1125,35 @@ td video {
                         <input type="range" class="boundary-opacity" id="opacity-zip" min="0" max="100" value="30" style="width:70px">
                         <span class="legend-dist" id="opacity-zip-val">30%</span>
                     </div>
+
+                    <div class="legend-title">Data Centers <span style="font-weight:normal;text-transform:none;letter-spacing:0;color:#999">(37 sites)</span></div>
+                    <div class="legend-row"><span class="legend-swatch"><svg width="16" height="16"><rect x="2" y="2" width="12" height="12" fill="#22C55E" stroke="#fff" stroke-width="1.5" transform="rotate(45 8 8)"/></svg></span>Operational</div>
+                    <div class="legend-row"><span class="legend-swatch"><svg width="16" height="16"><rect x="2" y="2" width="12" height="12" fill="#F97316" stroke="#fff" stroke-width="1.5" transform="rotate(45 8 8)"/></svg></span>Under Construction</div>
+                    <div class="legend-row"><span class="legend-swatch"><svg width="16" height="16"><rect x="2" y="2" width="12" height="12" fill="#3B82F6" stroke="#fff" stroke-width="1.5" transform="rotate(45 8 8)"/></svg></span>Planned</div>
+                    <div class="legend-row"><span class="legend-swatch"><svg width="16" height="16"><rect x="2" y="2" width="12" height="12" fill="#A855F7" stroke="#fff" stroke-width="1.5" transform="rotate(45 8 8)"/></svg></span>Land Banked</div>
+                    <div class="legend-row"><span class="legend-swatch"><svg width="16" height="16"><rect x="2" y="2" width="12" height="12" fill="#6B7280" stroke="#fff" stroke-width="1.5" transform="rotate(45 8 8)"/></svg></span>No Building</div>
+                    <div class="legend-row"><span class="legend-swatch"><svg width="16" height="16"><rect x="2" y="2" width="12" height="12" fill="#EAB308" stroke="#fff" stroke-width="1.5" transform="rotate(45 8 8)"/></svg></span>TBA / To Be Announced</div>
+
+                    <div class="legend-row boundary-control-row" style="margin-top:4px;">
+                        <input type="checkbox" class="boundary-toggle" id="toggle-datacenters" checked>
+                        <label for="toggle-datacenters" style="flex:1;cursor:pointer">Show Data Centers</label>
+                    </div>
+                    <div class="legend-row" style="padding:3px 0;gap:4px;">
+                        <label for="dc-status-filter" style="font-size:11px;color:#555;white-space:nowrap;flex-shrink:0;">Status:</label>
+                        <select id="dc-status-filter" style="flex:1;font-size:11px;padding:2px 3px;border:1px solid #ccc;border-radius:3px;background:#fff;">
+                            <option value="">All Statuses</option>
+                            <option value="Operational">Operational</option>
+                            <option value="Under Construction">Under Construction</option>
+                            <option value="Planned">Planned</option>
+                            <option value="Land Banked">Land Banked</option>
+                            <option value="No Building">No Building</option>
+                            <option value="TBA-To Be Announced">TBA / To Be Announced</option>
+                        </select>
+                    </div>
+                    <div class="legend-row" style="padding:3px 0;">
+                        <input type="text" id="dc-name-search" placeholder="Search datacenter by name…" style="width:100%;font-size:11px;padding:4px 6px;border:1px solid #ccc;border-radius:3px;box-sizing:border-box;">
+                    </div>
+                    <div id="dc-search-results" style="max-height:150px;overflow-y:auto;font-size:11px;border-radius:3px;"></div>
                 </div>
             </details>
         </div>
@@ -2775,6 +2912,7 @@ ol.proj.proj4.register(proj4);
 //ol.proj.get("EPSG:3857").setExtent([-13577824.063852, 4485752.649316, -13269905.402254, 4810452.237201]);
 var wms_layers = [];
 
+var json_Datacenters = {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.75526490434086,39.14942487229154]},"properties":{"Name":"Xogenous Data Center","Provider":"Xogenous","Address":"1175 Fairview Drive","City":"Carson City","ZIP":"89701","State":"Nevada","Country":"USA","Status":"Operational","Remarks":"","Latitude":39.14942487229154,"Longitude":-119.75526490434086}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.77799003209766,39.46603117161293]},"properties":{"Name":"Microsoft Silver Springs","Provider":"Microsoft","Address":"1200 W Hwy 50","City":"Silver Springs","ZIP":"89429","State":"Nevada","Country":"USA","Status":"Land Banked","Remarks":"","Latitude":39.46603117161293,"Longitude":-119.77799003209766}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.23360831213884,39.42567492920995]},"properties":{"Name":"Tract Silver Springs","Provider":"Tract","Address":"Sapphire Rd & Elm St","City":"Silver Springs","ZIP":"89429","State":"Nevada","Country":"USA","Status":"Land Banked","Remarks":"","Latitude":39.42567492920995,"Longitude":-119.23360831213884}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.40897184732749,39.473274398720704]},"properties":{"Name":"South Valley Technology Park","Provider":"Tract","Address":"8500 USA Pkwy","City":"Sparks","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Planned","Remarks":"","Latitude":39.473274398720704,"Longitude":-119.40897184732749}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.43050507030104,39.49254147764218]},"properties":{"Name":"Google Storey County - Building 3","Provider":"Google","Address":"7400 USA Pkwy","City":"Sparks","ZIP":"89437","State":"Nevada","Country":"USA","Status":"Under Construction","Remarks":"","Latitude":39.49254147764218,"Longitude":-119.43050507030104}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.42802679013674,39.4961973141108]},"properties":{"Name":"Google Storey County - Building 4","Provider":"Google","Address":"7400 USA Pkwy","City":"Sparks","ZIP":"89437","State":"Nevada","Country":"USA","Status":"Under Construction","Remarks":"","Latitude":39.4961973141108,"Longitude":-119.42802679013674}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.43091978899854,39.4974571223287]},"properties":{"Name":"Google Storey County - Building 2","Provider":"Google","Address":"7400 USA Pkwy","City":"Sparks","ZIP":"89437","State":"Nevada","Country":"USA","Status":"Under Construction","Remarks":"","Latitude":39.4974571223287,"Longitude":-119.43091978899854}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.43367536978057,39.49630540377229]},"properties":{"Name":"Google Storey County - Building 1","Provider":"Google","Address":"7400 USA Pkwy","City":"Sparks","ZIP":"89437","State":"Nevada","Country":"USAe","Status":"Operational","Remarks":"","Latitude":39.49630540377229,"Longitude":-119.43367536978057}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.48221329116802,39.49949334264283]},"properties":{"Name":"Switch TAHOE RENO 7","Provider":"Switch","Address":"1 SUPERLOOP Circle","City":"McCarran","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Planned","Remarks":"","Latitude":39.49949334264283,"Longitude":-119.48221329116802}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.4825775797622,39.50473823510685]},"properties":{"Name":"Switch TAHOE RENO 6","Provider":"Switch","Address":"1 SUPERLOOP Circle","City":"McCarran","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Under Construction","Remarks":"","Latitude":39.50473823510685,"Longitude":-119.4825775797622}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.4834802646115,39.50780594755913]},"properties":{"Name":"Switch TAHOE RENO 5","Provider":"Switch","Address":"1 SUPERLOOP Circle","City":"McCarran","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Under Construction","Remarks":"","Latitude":39.50780594755913,"Longitude":-119.4834802646115}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.48333591517249,39.51139757146244]},"properties":{"Name":"Switch TAHOE RENO 4","Provider":"Switch","Address":"1 SUPERLOOP Circle","City":"McCarran","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Under Construction","Remarks":"","Latitude":39.51139757146244,"Longitude":-119.48333591517249}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.4838411382091,39.51173166657303]},"properties":{"Name":"Switch TAHOE RENO 3","Provider":"Switch","Address":"1 SUPERLOOP Circle","City":"McCarran","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Under Construction","Remarks":"","Latitude":39.51173166657303,"Longitude":-119.4838411382091}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.4850320210811,39.51393108594798]},"properties":{"Name":"Switch TAHOE RENO 2","Provider":"Switch","Address":"1 SUPERLOOP Circle","City":"McCarran","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Operational","Remarks":"","Latitude":39.51393108594798,"Longitude":-119.4850320210811}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.47370059011723,39.514125967850816]},"properties":{"Name":"Switch TAHOE RENO 1","Provider":"Switch","Address":"1 SUPERLOOP Circle","City":"McCarran","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Operational","Remarks":"","Latitude":39.514125967850816,"Longitude":-119.47370059011723}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.50542183396439,39.51783123373862]},"properties":{"Name":"Peru Shelf Technology Park","Provider":"Tract","Address":"Peru Dr & Denmark Dr, Tahoe-Reno Industrial Center","City":"Sparks","ZIP":"89437","State":"Nevada","Country":"USA","Status":"Under Construction","Remarks":"","Latitude":39.51783123373862,"Longitude":-119.50542183396439}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.48387010368319,39.52371373739734]},"properties":{"Name":"EdgeCore Reno RN03","Provider":"EdgeCore","Address":"3000 USA Parkway","City":"McCarran","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Planned","Remarks":"","Latitude":39.52371373739734,"Longitude":-119.48387010368319}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.48111488959061,39.52372278566214]},"properties":{"Name":"EdgeCore Reno RN01","Provider":"EdgeCore","Address":"3000 USA Parkway","City":"McCarran","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Under Construction","Remarks":"","Latitude":39.52372278566214,"Longitude":-119.48111488959061}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.4818672854071,39.52489580712992]},"properties":{"Name":"EdgeCore Reno RN02","Provider":"EdgeCore","Address":"3000 USA Parkway","City":"McCarran","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Under Construction","Remarks":"","Latitude":39.52489580712992,"Longitude":-119.4818672854071}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.48072184383011,39.531705957829494]},"properties":{"Name":"Colovore RN01","Provider":"Colovore","Address":"100 Italy Dr","City":"Sparks","ZIP":"89437","State":"Nevada","Country":"USA","Status":"Under Construction","Remarks":"","Latitude":39.531705957829494,"Longitude":-119.48072184383011}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.4795700850251,39.55249796829192]},"properties":{"Name":"Vantage NV12","Provider":"Vantage Data Centers","Address":"200 Electric Ave","City":"Sparks","ZIP":"89437","State":"Nevada","Country":"USA","Status":"Under Construction","Remarks":"","Latitude":39.55249796829192,"Longitude":-119.4795700850251}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.47781984812933,39.55212233182256]},"properties":{"Name":"Vantage NV11","Provider":"Vantage Data Centers","Address":"100 Electric Ave","City":"Sparks","ZIP":"89437","State":"Nevada","Country":"USA","Status":"Under Construction","Remarks":"","Latitude":39.55212233182256,"Longitude":-119.47781984812933}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.49564923532716,39.55474583952921]},"properties":{"Name":"PowerHouse Reno - Building 2","Provider":"PowerHouse Data Centers","Address":"600 Britain Dr","City":"Sparks","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Planned","Remarks":"","Latitude":39.55474583952921,"Longitude":-119.49564923532716}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.49534249276513,39.55723603814553]},"properties":{"Name":"PowerHouse Reno - Building 1","Provider":"PowerHouse Data Centers","Address":"600 Britain Dr","City":"Sparks","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Under Construction","Remarks":"","Latitude":39.55723603814553,"Longitude":-119.49534249276513}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.49438617773156,39.55808463288612]},"properties":{"Name":"PowerHouse Reno - Building 3","Provider":"PowerHouse Data Centers","Address":"600 Britain Dr","City":"Sparks","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Planned","Remarks":"","Latitude":39.55808463288612,"Longitude":-119.49438617773156}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.18490194348792,39.61836412525342]},"properties":{"Name":"Microsoft Fernley","Provider":"Microsoft","Address":"Victory Logistics District, Gateway Dr","City":"Fernley","ZIP":"89408","State":"Nevada","Country":"USA","Status":"Land Banked","Remarks":"","Latitude":39.61836412525342,"Longitude":-119.18490194348792}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.53660530004873,39.57034921397196]},"properties":{"Name":"Apple Sparks - Building 3","Provider":"Apple","Address":"21905 Reno Technology Pkwy E","City":"Sparks","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Operational","Remarks":"","Latitude":39.57034921397196,"Longitude":-119.53660530004873}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.54398866711009,39.56725643932543]},"properties":{"Name":"Apple Sparks - Building 2","Provider":"Apple","Address":"21905 Reno Technology Pkwy E","City":"Sparks","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Operational","Remarks":"","Latitude":39.56725643932543,"Longitude":-119.54398866711009}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.54834457462609,39.566677493717116]},"properties":{"Name":"Apple Sparks - Building 1","Provider":"Apple","Address":"21905 Reno Technology Pkwy E","City":"Sparks","ZIP":"89434","State":"Nevada","Country":"USA","Status":"Operational","Remarks":"","Latitude":39.566677493717116,"Longitude":-119.54834457462609}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.62502798775782,39.52698614150769]},"properties":{"Name":"Novva Tahoe Reno","Provider":"Novva","Address":"1 Astro Way","City":"McCarran","ZIP":"89434","State":"Nevada","Country":"USA","Status":"No Building","Remarks":"","Latitude":39.52698614150769,"Longitude":-119.62502798775782}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.75271718320523,39.534877189974694]},"properties":{"Name":"Fleet Storey County Campus","Provider":"Fleet Data Centers","Address":"TBA-To Be Announced","City":"Sparks","ZIP":"89437","State":"Nevada","Country":"USA","Status":"TBA-To Be Announced","Remarks":"Address is on streets","Latitude":39.534877189974694,"Longitude":-119.75271718320523}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.81132610114528,39.52299108540736]},"properties":{"Name":"CENTRA Reno (RNO1)","Provider":"CENTRA","Address":"200 S Virginia St","City":"Reno","ZIP":"89501","State":"Nevada","Country":"USA","Status":"Operational","Remarks":"","Latitude":39.52299108540736,"Longitude":-119.81132610114528}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.82643831294054,39.52572122566787]},"properties":{"Name":"CENTRA Reno (RNO2)","Provider":"CENTRA","Address":"265 Keystone Ave","City":"Reno","ZIP":"89503","State":"Nevada","Country":"USA","Status":"Operational","Remarks":"","Latitude":39.52572122566787,"Longitude":-119.82643831294054}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.82700444975146,39.524952212689946]},"properties":{"Name":"Lumen Reno 1","Provider":"Lumen","Address":"220 Gardner Street","City":"Reno","ZIP":"89503","State":"Nevada","Country":"USA","Status":"Operational","Remarks":"","Latitude":39.524952212689946,"Longitude":-119.82700444975146}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.76984839225085,39.469358735305434]},"properties":{"Name":"Roller Network Colocation Data Center","Provider":"Roller Network LLC","Address":"3545 Airway Dr","City":"Reno","ZIP":"89511","State":"Nevada","Country":"USA","Status":"Operational","Remarks":"","Latitude":39.469358735305434,"Longitude":-119.76984839225085}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-118.77782944445326,39.47522976054141]},"properties":{"Name":"CC Communications Data Center","Provider":"CC Communications","Address":"50 W Williams Ave","City":"Fallon","ZIP":"89406","State":"Nevada","Country":"USA","Status":"Operational","Remarks":"","Latitude":39.47522976054141,"Longitude":-118.77782944445326}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-119.88372446990243,39.61767956867441]},"properties":{"Name":"Connect Reno","Provider":"Connect Data Centers by Oppidan","Address":"N Virginia St & Stead Blvd","City":"Reno","ZIP":"89506","State":"Nevada","Country":"USA","Status":"Planned","Remarks":"","Latitude":39.61767956867441,"Longitude":-119.88372446990243}}]};
 
         var lyr_GoogleSatellite_0 = new ol.layer.Tile({
             'title': 'Google Satellite',
@@ -2947,8 +3085,47 @@ var group_SanJosetoReno_Citadelend_V3 = new ol.layer.Group({
                                 fold: 'close',
                                 title: 'Project Sierra — Fiber Network'});
 
-lyr_GoogleSatellite_0.setVisible(false);lyr_GoogleMaps_1.setVisible(true);lyr_USTribalLand_2.setVisible(true);lyr_RouteSanjosetoReno_Sparks_5.setVisible(true);lyr_Carson_Sparks_Reno_Alternative_6.setVisible(true);lyr_TRIC_7.setVisible(true);lyr_ActiveSitesNodes_8.setVisible(true);lyr_PROPOSED_TRIC_Fernely_Silver_Springs_LOOP_9.setVisible(true);lyr_Countys_10.setVisible(true);lyr_County_Subdivisions_11.setVisible(true);lyr_ZIP_12.setVisible(false);
-var layersList = [lyr_GoogleSatellite_0,lyr_GoogleMaps_1,group_ReferenceBoundaries,group_SanJosetoReno_Citadelend_V3];
+// ── DATACENTERS LAYER ────────────────────────────────────────────────────────
+var DC_STATUS_COLORS = {
+    'Operational': '#22C55E',
+    'Under Construction': '#F97316',
+    'Planned': '#3B82F6',
+    'Land Banked': '#A855F7',
+    'No Building': '#6B7280',
+    'TBA-To Be Announced': '#EAB308'
+};
+function style_Datacenters(feature) {
+    var status = feature.get('Status') || '';
+    var color = DC_STATUS_COLORS[status] || '#64748B';
+    return new ol.style.Style({
+        image: new ol.style.RegularShape({
+            points: 4, radius: 9, angle: Math.PI / 4,
+            fill: new ol.style.Fill({ color: color }),
+            stroke: new ol.style.Stroke({ color: '#ffffff', width: 1.5 })
+        })
+    });
+}
+var format_Datacenters = new ol.format.GeoJSON();
+var features_Datacenters = format_Datacenters.readFeatures(json_Datacenters,
+    {dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857'});
+var jsonSource_Datacenters = new ol.source.Vector({ attributions: ' ' });
+jsonSource_Datacenters.addFeatures(features_Datacenters);
+var lyr_Datacenters = new ol.layer.Vector({
+    declutter: false,
+    source: jsonSource_Datacenters,
+    style: style_Datacenters,
+    popuplayertitle: 'Data Centers',
+    interactive: true,
+    title: 'Data Centers'
+});
+var group_Datacenters = new ol.layer.Group({
+    layers: [lyr_Datacenters],
+    fold: 'open',
+    title: 'Data Centers'
+});
+
+lyr_GoogleSatellite_0.setVisible(false);lyr_GoogleMaps_1.setVisible(true);lyr_USTribalLand_2.setVisible(true);lyr_RouteSanjosetoReno_Sparks_5.setVisible(true);lyr_Carson_Sparks_Reno_Alternative_6.setVisible(true);lyr_TRIC_7.setVisible(true);lyr_ActiveSitesNodes_8.setVisible(true);lyr_PROPOSED_TRIC_Fernely_Silver_Springs_LOOP_9.setVisible(true);lyr_Countys_10.setVisible(true);lyr_County_Subdivisions_11.setVisible(true);lyr_ZIP_12.setVisible(false);lyr_Datacenters.setVisible(true);
+var layersList = [lyr_GoogleSatellite_0,lyr_GoogleMaps_1,group_Datacenters,group_ReferenceBoundaries,group_SanJosetoReno_Citadelend_V3];
 lyr_USTribalLand_2.set('fieldAliases', {'Name': 'Name', 'descriptio': 'descriptio', 'timestamp': 'timestamp', 'begin': 'begin', 'end': 'end', 'altitudeMo': 'altitudeMo', 'tessellate': 'tessellate', 'extrude': 'extrude', 'visibility': 'visibility', 'drawOrder': 'drawOrder', 'icon': 'icon', });
 lyr_RouteSanjosetoReno_Sparks_5.set('fieldAliases', {'Name': 'Name', 'descriptio': 'descriptio', 'timestamp': 'timestamp', 'begin': 'begin', 'end': 'end', 'altitudeMo': 'altitudeMo', 'tessellate': 'tessellate', 'extrude': 'extrude', 'visibility': 'visibility', 'drawOrder': 'drawOrder', 'icon': 'icon', });
 lyr_Carson_Sparks_Reno_Alternative_6.set('fieldAliases', {'Name': 'Name', 'descriptio': 'descriptio', 'timestamp': 'timestamp', 'begin': 'begin', 'end': 'end', 'altitudeMo': 'altitudeMo', 'tessellate': 'tessellate', 'extrude': 'extrude', 'visibility': 'visibility', 'drawOrder': 'drawOrder', 'icon': 'icon', });
@@ -2976,6 +3153,10 @@ lyr_ZIP_12.set('fieldImages', {'ZCTA5CE20': '', 'GEOID20': '', 'GEOIDFQ20': '', 
 lyr_Countys_10.set('fieldLabels', {'STATEFP': 'hidden field', 'COUNTYFP': 'hidden field', 'COUNTYNS': 'hidden field', 'GEOID': 'hidden field', 'GEOIDFQ': 'hidden field', 'NAME': 'hidden field', 'NAMELSAD': 'no label', 'LSAD': 'hidden field', 'CLASSFP': 'hidden field', 'MTFCC': 'hidden field', 'CSAFP': 'hidden field', 'CBSAFP': 'hidden field', 'METDIVFP': 'hidden field', 'FUNCSTAT': 'hidden field', 'ALAND': 'hidden field', 'AWATER': 'hidden field', 'INTPTLAT': 'hidden field', 'INTPTLON': 'hidden field', });
 lyr_County_Subdivisions_11.set('fieldLabels', {'STATEFP': 'hidden field', 'COUNTYFP': 'hidden field', 'COUSUBFP': 'hidden field', 'COUSUBNS': 'hidden field', 'GEOID': 'hidden field', 'GEOIDFQ': 'hidden field', 'NAME': 'hidden field', 'NAMELSAD': 'no label', 'LSAD': 'hidden field', 'CLASSFP': 'hidden field', 'MTFCC': 'hidden field', 'FUNCSTAT': 'hidden field', 'ALAND': 'hidden field', 'AWATER': 'hidden field', 'INTPTLAT': 'hidden field', 'INTPTLON': 'hidden field', });
 lyr_ZIP_12.set('fieldLabels', {'ZCTA5CE20': 'no label', 'GEOID20': 'hidden field', 'GEOIDFQ20': 'hidden field', 'CLASSFP20': 'hidden field', 'MTFCC20': 'hidden field', 'FUNCSTAT20': 'hidden field', 'ALAND20': 'hidden field', 'AWATER20': 'hidden field', 'INTPTLAT20': 'hidden field', 'INTPTLON20': 'hidden field', });
+lyr_Datacenters.set('fieldAliases', {'Name': 'Datacenter Name', 'Provider': 'Provider / Operator', 'Address': 'Address', 'City': 'City', 'ZIP': 'ZIP Code', 'State': 'State', 'Country': 'Country', 'Status': 'Status', 'Remarks': 'Remarks', 'Latitude': 'Latitude', 'Longitude': 'Longitude', });
+lyr_Datacenters.set('fieldImages', {'Name': '', 'Provider': '', 'Address': '', 'City': '', 'ZIP': '', 'State': '', 'Country': '', 'Status': '', 'Remarks': '', 'Latitude': '', 'Longitude': '', });
+lyr_Datacenters.set('fieldLabels', {'Name': 'inline label - always visible', 'Provider': 'inline label - always visible', 'Address': 'inline label - always visible', 'City': 'inline label - always visible', 'ZIP': 'inline label - always visible', 'State': 'inline label - always visible', 'Country': 'inline label - always visible', 'Status': 'inline label - always visible', 'Remarks': 'inline label - visible with data', 'Latitude': 'hidden field', 'Longitude': 'hidden field', });
+
 lyr_PROPOSED_TRIC_Fernely_Silver_Springs_LOOP_9.on('precompose', function(evt) {
     evt.context.globalCompositeOperation = 'normal';
 });
@@ -3995,6 +4176,183 @@ if (hasTouchScreen || isSmallScreen) {
     });
 })();
 
+
+
+// ── DATACENTER CONTROLS & POPUP ─────────────────────────────────────────────
+(function() {
+    var allDcFeatures = jsonSource_Datacenters.getFeatures();
+    var dcHighlighted = null;
+
+    // Build popup element
+    var dcPopup = document.createElement('div');
+    dcPopup.id = 'dc-popup';
+    dcPopup.innerHTML =
+        '<div id="dc-popup-header">' +
+            '<span id="dc-popup-status-badge"></span>' +
+            '<span id="dc-popup-title"></span>' +
+            '<button id="dc-popup-close" title="Close">×</button>' +
+        '</div>' +
+        '<div id="dc-popup-body"><table id="dc-popup-table"></table></div>';
+    document.body.appendChild(dcPopup);
+
+    document.getElementById('dc-popup-close').addEventListener('click', function() {
+        dcPopup.classList.remove('visible');
+        if (dcHighlighted) { dcHighlighted.setStyle(null); dcHighlighted = null; }
+    });
+
+    // Status colors (match layer style)
+    var DC_STATUS_COLORS_UI = {
+        'Operational': '#22C55E',
+        'Under Construction': '#F97316',
+        'Planned': '#3B82F6',
+        'Land Banked': '#A855F7',
+        'No Building': '#6B7280',
+        'TBA-To Be Announced': '#EAB308'
+    };
+
+    function showDcPopup(feat) {
+        var status = feat.get('Status') || '';
+        var color = DC_STATUS_COLORS_UI[status] || '#64748B';
+        document.getElementById('dc-popup-title').textContent = feat.get('Name') || 'Data Center';
+        var badge = document.getElementById('dc-popup-status-badge');
+        badge.textContent = status || '—';
+        badge.style.background = color;
+
+        var fields = [
+            ['Provider', feat.get('Provider')],
+            ['Address', feat.get('Address')],
+            ['City', feat.get('City')],
+            ['ZIP Code', feat.get('ZIP')],
+            ['State', feat.get('State')],
+            ['Country', feat.get('Country')],
+            ['Remarks', feat.get('Remarks')]
+        ];
+        var rows = fields.filter(function(f) { return f[1]; }).map(function(f) {
+            return '<tr><td>' + f[0] + '</td><td>' + String(f[1]).replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</td></tr>';
+        }).join('');
+        document.getElementById('dc-popup-table').innerHTML = rows;
+        dcPopup.classList.add('visible');
+    }
+
+    function highlightDc(feat) {
+        if (dcHighlighted && dcHighlighted !== feat) {
+            dcHighlighted.setStyle(null);
+        }
+        var status = feat.get('Status') || '';
+        var color = DC_STATUS_COLORS_UI[status] || '#64748B';
+        feat.setStyle(new ol.style.Style({
+            image: new ol.style.RegularShape({
+                points: 4, radius: 13, angle: Math.PI / 4,
+                fill: new ol.style.Fill({ color: color }),
+                stroke: new ol.style.Stroke({ color: '#FF0000', width: 3 })
+            })
+        }));
+        dcHighlighted = feat;
+    }
+
+    // Map click handler for datacenter features
+    map.on('singleclick', function(evt) {
+        var found = null;
+        map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+            if (!found && layer === lyr_Datacenters) {
+                found = feature;
+            }
+        });
+        if (found) {
+            highlightDc(found);
+            showDcPopup(found);
+        }
+    });
+
+    // Toggle visibility
+    var toggleEl = document.getElementById('toggle-datacenters');
+    if (toggleEl) {
+        toggleEl.addEventListener('change', function() {
+            lyr_Datacenters.setVisible(toggleEl.checked);
+            if (!toggleEl.checked) {
+                dcPopup.classList.remove('visible');
+                if (dcHighlighted) { dcHighlighted.setStyle(null); dcHighlighted = null; }
+            }
+        });
+    }
+
+    // Filter + search
+    var statusFilterEl = document.getElementById('dc-status-filter');
+    var nameSearchEl = document.getElementById('dc-name-search');
+    var searchResultsEl = document.getElementById('dc-search-results');
+
+    var currentDcStatus = '';
+    var currentDcName = '';
+
+    function applyDcFilter() {
+        currentDcStatus = statusFilterEl ? statusFilterEl.value : '';
+        currentDcName = nameSearchEl ? nameSearchEl.value.toLowerCase().trim() : '';
+        lyr_Datacenters.setStyle(function(feature) {
+            var status = feature.get('Status') || '';
+            var name = (feature.get('Name') || '').toLowerCase();
+            if (currentDcStatus && status !== currentDcStatus) return null;
+            if (currentDcName && name.indexOf(currentDcName) < 0) return null;
+            return style_Datacenters(feature);
+        });
+        renderDcResults();
+    }
+
+    function renderDcResults() {
+        if (!searchResultsEl) return;
+        if (!currentDcName && !currentDcStatus) {
+            searchResultsEl.innerHTML = '';
+            return;
+        }
+        var visible = allDcFeatures.filter(function(f) {
+            var status = f.get('Status') || '';
+            var name = (f.get('Name') || '').toLowerCase();
+            if (currentDcStatus && status !== currentDcStatus) return false;
+            if (currentDcName && name.indexOf(currentDcName) < 0) return false;
+            return true;
+        });
+        if (visible.length === 0) {
+            searchResultsEl.innerHTML = '<div style="padding:6px 8px;color:#888;font-size:11px;">No results found</div>';
+            return;
+        }
+        var html = visible.slice(0, 12).map(function(f, i) {
+            var st = f.get('Status') || '';
+            var col = DC_STATUS_COLORS_UI[st] || '#64748B';
+            return '<div class="dc-result-item" data-dci="' + i + '">' +
+                '<span class="dc-result-dot" style="background:' + col + ';"></span>' +
+                '<span class="dc-result-name">' + (f.get('Name') || '').replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</span>' +
+                '<span class="dc-result-status">' + st + '</span>' +
+                '</div>';
+        }).join('');
+        if (visible.length > 12) {
+            html += '<div style="padding:4px 8px;color:#888;font-size:10px;text-align:center;">+ ' + (visible.length - 12) + ' more — refine search</div>';
+        }
+        searchResultsEl.innerHTML = html;
+
+        var slice = visible.slice(0, 12);
+        searchResultsEl.querySelectorAll('.dc-result-item').forEach(function(el) {
+            el.addEventListener('click', function() {
+                var feat = slice[parseInt(el.dataset.dci)];
+                if (!feat) return;
+                var geom = feat.getGeometry();
+                map.getView().animate({ center: geom.getCoordinates(), zoom: 15, duration: 500 });
+                highlightDc(feat);
+                showDcPopup(feat);
+                if (toggleEl && !lyr_Datacenters.getVisible()) {
+                    toggleEl.checked = true;
+                    lyr_Datacenters.setVisible(true);
+                }
+            });
+        });
+    }
+
+    if (statusFilterEl) statusFilterEl.addEventListener('change', applyDcFilter);
+    if (nameSearchEl) {
+        nameSearchEl.addEventListener('input', function() {
+            clearTimeout(nameSearchEl._t);
+            nameSearchEl._t = setTimeout(applyDcFilter, 250);
+        });
+    }
+})();
 
 //attribution
 var bottomAttribution = new ol.control.Attribution({
